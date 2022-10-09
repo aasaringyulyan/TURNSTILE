@@ -1,0 +1,18 @@
+port: "8080"
+
+logger:
+  trace_level: "trace"
+
+db:
+  username: "katawa"
+  host: "localhost"
+  port: "5432"
+  dbname: "data_generator_mock"
+  sslmode: "disable"
+
+client:
+  max_conns_per_host: 10
+  timeout: "3s"
+
+timout:
+  delta_time: "3s"

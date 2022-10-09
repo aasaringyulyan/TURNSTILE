@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+
+  postgres1:
+    image: postgres:13.3
+    environment:
+      POSTGRES_USER: 'katawa'
+      POSTGRES_PASSWORD: 'root'
+      POSTGRES_DB: 'data_generator_mock'
+    ports:
+      - "5432:5432"

@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "card_number": 414141,
+      "employee_id": 2222,
+      "rv": 27493955359,
+      "isdeleted": false
+    },
+    {
+      "card_number": null,
+      "employee_id": 3333,
+      "rv": 27493956146,
+      "isdeleted": true
+    }
+  ]
+}

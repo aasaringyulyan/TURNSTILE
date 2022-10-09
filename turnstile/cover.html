@@ -1,0 +1,1648 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">turnstile/cmd/main.go (0.0%)</option>
+				
+				<option value="file1">turnstile/configs/init.go (0.0%)</option>
+				
+				<option value="file2">turnstile/internal/app.go (0.0%)</option>
+				
+				<option value="file3">turnstile/internal/entrypoints/error.go (100.0%)</option>
+				
+				<option value="file4">turnstile/internal/entrypoints/handler.go (64.7%)</option>
+				
+				<option value="file5">turnstile/internal/service/gripper/files.go (0.0%)</option>
+				
+				<option value="file6">turnstile/internal/service/gripper/gripper.go (0.0%)</option>
+				
+				<option value="file7">turnstile/internal/service/infrastructure/data_client.go (0.0%)</option>
+				
+				<option value="file8">turnstile/internal/service/infrastructure/log_client.go (0.0%)</option>
+				
+				<option value="file9">turnstile/internal/service/infrastructure/repo/employee_repo.go (48.3%)</option>
+				
+				<option value="file10">turnstile/internal/service/infrastructure/repo/logs_repo.go (80.0%)</option>
+				
+				<option value="file11">turnstile/internal/service/mocks/mock.go (17.9%)</option>
+				
+				<option value="file12">turnstile/internal/service/scheduler/scheduler.go (0.0%)</option>
+				
+				<option value="file13">turnstile/internal/service/sender/log_sender.go (0.0%)</option>
+				
+				<option value="file14">turnstile/internal/service/turnstile.go (0.0%)</option>
+				
+				<option value="file15">turnstile/pkg/client/client.go (0.0%)</option>
+				
+				<option value="file16">turnstile/pkg/httpserver/server.go (0.0%)</option>
+				
+				<option value="file17">turnstile/pkg/logging/logging.go (41.9%)</option>
+				
+				<option value="file18">turnstile/pkg/sqlite/sqlite.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "log"
+        "turnstile/configs"
+        app "turnstile/internal"
+)
+
+func main() <span class="cov0" title="0">{
+        if err := configs.InitConfig(); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Config error: %s", err)
+        }</span>
+
+        <span class="cov0" title="0">app.Run()</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package configs
+
+import "github.com/spf13/viper"
+
+func InitConfig() error <span class="cov0" title="0">{
+        viper.AddConfigPath("configs")
+        viper.SetConfigName("config")
+        return viper.ReadInConfig()
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package internal
+
+import (
+        "github.com/gin-gonic/gin"
+        "github.com/spf13/viper"
+        "os"
+        "os/signal"
+        "syscall"
+        "turnstile/internal/entrypoints"
+        "turnstile/internal/service"
+        "turnstile/internal/service/gripper"
+        "turnstile/internal/service/infrastructure"
+        "turnstile/internal/service/infrastructure/repo"
+        "turnstile/internal/service/scheduler"
+        "turnstile/internal/service/sender"
+        "turnstile/pkg/client"
+        "turnstile/pkg/httpserver"
+        "turnstile/pkg/logging"
+        "turnstile/pkg/sqlite"
+)
+
+func Run() <span class="cov0" title="0">{
+        logger := logging.GetLogger(viper.GetString("logger.trace_level"))
+
+        // Init db
+        db, err := sqlite.New(sqlite.Config{
+                FileName: viper.GetString("db.filename"),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Fatalf("failed to initialize db: %s", err.Error())
+        }</span>
+
+        // Repository
+        <span class="cov0" title="0">empRepo := repo.NewEmployeeRepo(logger, db, viper.GetString("db.employeeTableName"))
+        logRepo := repo.NewLogRepo(logger, db, viper.GetString("db.logTableName"))
+
+        // Infrastructure
+        c := client.NewClient(client.Config{
+                MaxConnsPerHost: viper.GetInt("client.max_conns_per_host"),
+                Timeout:         viper.GetDuration("client.timeout"),
+        })
+        dataClient := infrastructure.NewDataClient(logger, c, viper.GetString("client.dataClientUrl"))
+        logClient := infrastructure.NewLogClient(logger, c, viper.GetString("client.logClientUrl"))
+
+        // Service
+        //        Gripper
+        dg := gripper.New(dataClient, empRepo, viper.GetString("rvFileName"))
+        //         LogSender
+        ls := sender.New(logClient, logRepo)
+        //         Scheduler
+        dailyTime := viper.GetDuration("scheduler.dailyTime")
+        logTime := viper.GetDuration("scheduler.logTime")
+        retryTime := viper.GetDuration("scheduler.retryTime")
+        sch := scheduler.New(logger, dg, ls, dailyTime, logTime, retryTime)
+        //         Main service
+        tService := service.New(logger, sch, empRepo, logRepo, uint64(viper.GetInt("turnstileId")))
+
+        // First load
+        err = tService.StartScheduler()
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Fatalf("failed first LoadData: %s", err.Error())
+        }</span>
+
+        // HTTP Server
+        <span class="cov0" title="0">engine := gin.New()
+        entrypoints.Init(engine, logger, tService)
+        httpServer := httpserver.New(engine, viper.GetString("port"))
+
+        // Shutdown
+        quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+        &lt;-quit
+        // Shutdown HTTP Server
+        if err = httpServer.Shutdown(); err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("error occured on server shutting down: %s", err.Error())
+        }</span>
+        // Shutdown db
+        <span class="cov0" title="0">if err = db.Close(); err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("error occured on db connection close: %s", err.Error())
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package entrypoints
+
+import (
+        "github.com/gin-gonic/gin"
+        "turnstile/pkg/logging"
+)
+
+type response struct {
+        Message string `json:"message"`
+}
+
+func errorResponse(c *gin.Context, statusCode int, message string, logger logging.Logger) <span class="cov10" title="5">{
+        logger.Error(message)
+        c.AbortWithStatusJSON(statusCode, response{message})
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package entrypoints
+
+import (
+        "github.com/gin-gonic/gin"
+        ginprometheus "github.com/zsais/go-gin-prometheus"
+        "net/http"
+        "turnstile/internal/models"
+        "turnstile/internal/service"
+        "turnstile/pkg/logging"
+)
+
+type Handler struct {
+        tService service.Turnstile
+        logger   logging.Logger
+}
+
+func Init(engine *gin.Engine, logger logging.Logger, services service.Turnstile) *Handler <span class="cov0" title="0">{
+        h := &amp;Handler{
+                tService: services,
+                logger:   logger,
+        }
+
+        h.InitRoutes(engine)
+        return h
+}</span>
+
+func (h *Handler) InitRoutes(engine *gin.Engine) <span class="cov0" title="0">{
+        engine.Use(gin.Logger())
+        engine.Use(gin.Recovery())
+
+        //Gin Web Framework Prometheus metrics exporter
+        p := ginprometheus.NewPrometheus("gin")
+        p.Use(engine)
+
+        engine.POST("/check", h.getPassage)
+        engine.POST("/logs", h.getLogs)
+}</span>
+
+func (h *Handler) getPassage(ctx *gin.Context) <span class="cov10" title="4">{
+        var passage models.PassageCheck
+
+        if err := ctx.ShouldBindJSON(&amp;passage); err != nil </span><span class="cov5" title="2">{
+                errorResponse(ctx, http.StatusBadRequest, "invalid input body", h.logger)
+                return
+        }</span>
+
+        <span class="cov5" title="2">isAccepted, err := h.tService.CheckHandler(passage)
+        if err != nil </span><span class="cov1" title="1">{
+                errorResponse(ctx, http.StatusInternalServerError, err.Error(), h.logger)
+                return
+        }</span>
+
+        <span class="cov1" title="1">var status int
+
+        switch isAccepted </span>{
+        case true:<span class="cov1" title="1">
+                status = http.StatusOK</span>
+        case false:<span class="cov0" title="0">
+                status = http.StatusUnauthorized</span>
+        }
+
+        <span class="cov1" title="1">ctx.JSON(status, gin.H{
+                "accepted": isAccepted,
+        })</span>
+}
+
+func (h *Handler) getLogs(ctx *gin.Context) <span class="cov8" title="3">{
+        var logs models.PassageLogsLinux
+
+        if err := ctx.ShouldBindJSON(&amp;logs); err != nil </span><span class="cov0" title="0">{
+                errorResponse(ctx, http.StatusBadRequest, "invalid input body", h.logger)
+                return
+        }</span>
+
+        <span class="cov8" title="3">if len(logs.Logs) &lt; 1 </span><span class="cov1" title="1">{
+                errorResponse(ctx, http.StatusBadRequest, "invalid input body", h.logger)
+                return
+        }</span>
+
+        // Request to service
+        <span class="cov5" title="2">err := h.tService.LogHandler(logs)
+        if err != nil </span><span class="cov1" title="1">{
+                errorResponse(ctx, http.StatusInternalServerError, err.Error(), h.logger)
+                return
+        }</span>
+
+        <span class="cov1" title="1">ctx.JSON(http.StatusOK, gin.H{
+                "code": http.StatusOK,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package gripper
+
+import (
+        "encoding/json"
+        "errors"
+        "os"
+)
+
+func readRv(filePath string) (uint64, error) <span class="cov0" title="0">{
+        _, err := os.Stat(filePath)
+        if errors.Is(err, os.ErrNotExist) </span><span class="cov0" title="0">{
+                err = writeRv(filePath, 0)
+                if err != nil </span><span class="cov0" title="0">{
+                        return 0, err
+                }</span>
+        } else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        // Прочитать
+        <span class="cov0" title="0">type rv struct {
+                Rv uint64
+        }
+        var result rv
+        body, err := os.ReadFile(filePath)
+        err = json.Unmarshal(body, &amp;result)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">return result.Rv, nil</span>
+}
+
+func writeRv(filePath string, rv uint64) error <span class="cov0" title="0">{
+        file, err := os.Create(filePath)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
+
+        mp := make(map[string]uint64)
+        mp["rv"] = rv
+
+        jsonString, _ := json.Marshal(mp)
+        _, err = file.WriteString(string(jsonString))
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package gripper
+
+import (
+        "turnstile/internal/service"
+        "turnstile/internal/service/infrastructure"
+)
+
+// ToDo отрефакторить?
+
+type DataGripper struct {
+        client     *infrastructure.DataClient
+        empRepo    service.EmployeeRepo
+        rvFileName string
+}
+
+func New(client *infrastructure.DataClient, empRepo service.EmployeeRepo, rvFileName string) *DataGripper <span class="cov0" title="0">{
+        return &amp;DataGripper{
+                client:     client,
+                empRepo:    empRepo,
+                rvFileName: rvFileName,
+        }
+}</span>
+
+func (dg *DataGripper) LoadData() error <span class="cov0" title="0">{
+        // Прочитали rv
+        rv, err := readRv(dg.rvFileName)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Получили данные
+        <span class="cov0" title="0">employees, err := dg.client.GetData(rv)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Вставляем данные в бд
+        <span class="cov0" title="0">for _, value := range employees["data"] </span><span class="cov0" title="0">{
+                err = dg.empRepo.Save(value)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        // Записали последнее rv в файл
+        <span class="cov0" title="0">emp := employees["data"]
+        if len(emp) &gt; 0 </span><span class="cov0" title="0">{
+                err = writeRv(dg.rvFileName, emp[len(emp)-1].Rv)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package infrastructure
+
+import (
+        "encoding/json"
+        "errors"
+        "io/ioutil"
+        "net/http"
+        "strconv"
+        "turnstile/internal/models"
+        "turnstile/pkg/client"
+        "turnstile/pkg/logging"
+)
+
+type DataClient struct {
+        logger logging.Logger
+        client *client.Client
+        url    string
+}
+
+func NewDataClient(logger logging.Logger, client *client.Client, url string) *DataClient <span class="cov0" title="0">{
+        return &amp;DataClient{
+                logger: logger,
+                client: client,
+                url:    url,
+        }
+}</span>
+
+func (dc *DataClient) GetData(rv uint64) (map[string][]models.Employee, error) <span class="cov0" title="0">{
+        req, err := http.NewRequest(http.MethodGet, dc.url, nil)
+        q := req.URL.Query()
+        q.Add("rv", strconv.FormatUint(rv, 10))
+        req.URL.RawQuery = q.Encode()
+
+        res, err := dc.client.HttpClient.Do(req)
+        if res == nil </span><span class="cov0" title="0">{
+                return nil, errors.New("DataService is unreachable")
+        }</span>
+        <span class="cov0" title="0">if res.Body != nil </span><span class="cov0" title="0">{
+                defer res.Body.Close()
+        }</span>
+        <span class="cov0" title="0">body, err := ioutil.ReadAll(res.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">var employees map[string][]models.Employee
+
+        err = json.Unmarshal(body, &amp;employees)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return employees, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package infrastructure
+
+import (
+        "bytes"
+        "encoding/json"
+        "net/http"
+        "turnstile/internal/models"
+        "turnstile/pkg/client"
+        "turnstile/pkg/logging"
+)
+
+type LogClient struct {
+        logger logging.Logger
+        client *client.Client
+        url    string
+}
+
+func NewLogClient(logger logging.Logger, client *client.Client, url string) *LogClient <span class="cov0" title="0">{
+        return &amp;LogClient{
+                logger: logger,
+                client: client,
+                url:    url,
+        }
+}</span>
+
+func (lc *LogClient) SendLogs(logs models.PassageLogsForApi) error <span class="cov0" title="0">{
+        data, err := json.Marshal(logs)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">req, err := http.NewRequest(http.MethodPost, lc.url, bytes.NewReader(data))
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">res, err := lc.client.HttpClient.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if res.Body != nil </span><span class="cov0" title="0">{
+                defer res.Body.Close()
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package repo
+
+import (
+        "fmt"
+        "github.com/jmoiron/sqlx"
+        "turnstile/internal/models"
+        "turnstile/pkg/logging"
+)
+
+type EmployeeRepo struct {
+        logger    logging.Logger
+        db        *sqlx.DB
+        tableName string
+}
+
+func NewEmployeeRepo(logger logging.Logger, db *sqlx.DB, tableName string) *EmployeeRepo <span class="cov10" title="2">{
+        return &amp;EmployeeRepo{
+                logger:    logger,
+                db:        db,
+                tableName: tableName,
+        }
+}</span>
+
+func (er *EmployeeRepo) SaveSlice(data []models.Employee) error <span class="cov0" title="0">{
+        tx, err := er.db.Begin()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                switch err </span>{
+                case nil:<span class="cov0" title="0">
+                        err = tx.Commit()</span>
+                default:<span class="cov0" title="0">
+                        tx.Rollback()</span>
+                }
+        }()
+
+        <span class="cov0" title="0">for _, v := range data </span><span class="cov0" title="0">{
+                query := fmt.Sprintf("INSERT INTO %s (card_number, employee_id, rv, isdeleted) values ($1, $2, $3, $4)",
+                        er.tableName)
+
+                if _, err = tx.Exec(query, v.CardNumber, v.EmployeeID, v.Rv, v.IsDeleted); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">return err</span>
+}
+
+func (er *EmployeeRepo) Save(data models.Employee) error <span class="cov1" title="1">{
+        tx, err := er.db.Begin()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">defer func() </span><span class="cov1" title="1">{
+                switch err </span>{
+                case nil:<span class="cov1" title="1">
+                        err = tx.Commit()</span>
+                default:<span class="cov0" title="0">
+                        tx.Rollback()</span>
+                }
+        }()
+
+        <span class="cov1" title="1">query := fmt.Sprintf("INSERT INTO %s (card_number, employee_id, rv, isdeleted) values ($1, $2, $3, $4)",
+                er.tableName)
+
+        if _, err = tx.Exec(query, data.CardNumber, data.EmployeeID, data.Rv, data.IsDeleted); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">return err</span>
+}
+
+func (er *EmployeeRepo) GetEmployeeByCard(card uint64) (models.Employee, error) <span class="cov10" title="2">{
+        query := fmt.Sprintf("SELECT * FROM %s WHERE card_number=$1 ", er.tableName)
+
+        var employee models.Employee
+        if err := er.db.Get(&amp;employee, query, card); err != nil </span><span class="cov1" title="1">{
+                return models.Employee{}, err
+        }</span>
+
+        <span class="cov1" title="1">return employee, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package repo
+
+import (
+        "fmt"
+        "github.com/jmoiron/sqlx"
+        "turnstile/internal/models"
+        "turnstile/pkg/logging"
+)
+
+type LogRepo struct {
+        logger    logging.Logger
+        db        *sqlx.DB
+        tableName string
+}
+
+func NewLogRepo(logger logging.Logger, db *sqlx.DB, tableName string) *LogRepo <span class="cov10" title="3">{
+        return &amp;LogRepo{
+                logger:    logger,
+                db:        db,
+                tableName: tableName,
+        }
+}</span>
+
+func (lr *LogRepo) Save(log models.PassageLogForApi) error <span class="cov1" title="1">{
+        tx, err := lr.db.Begin()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">defer func() </span><span class="cov1" title="1">{
+                switch err </span>{
+                case nil:<span class="cov1" title="1">
+                        err = tx.Commit()</span>
+                default:<span class="cov0" title="0">
+                        tx.Rollback()</span>
+                }
+        }()
+
+        <span class="cov1" title="1">query := fmt.Sprintf("INSERT INTO %s (turnstile_id, employee_id, card, direction, dt) "+
+                "values ($1, $2, $3, $4, $5)", lr.tableName)
+
+        if _, err = tx.Exec(query, log.TurnstileID, log.EmployeeID, log.CardID, log.Direction, log.DateTime); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov1" title="1">return err</span>
+}
+
+func (lr *LogRepo) GetAll() (models.PassageLogsForApi, error) <span class="cov6" title="2">{
+        var logs models.PassageLogsForApi
+
+        query := fmt.Sprintf("SELECT * FROM %s", lr.tableName)
+        if err := lr.db.Select(&amp;logs.Logs, query); err != nil </span><span class="cov0" title="0">{
+                return models.PassageLogsForApi{}, err
+        }</span>
+
+        <span class="cov6" title="2">return logs, nil</span>
+}
+
+func (lr *LogRepo) DeleteAll() error <span class="cov1" title="1">{
+        query := fmt.Sprintf("DELETE FROM %s", lr.tableName)
+
+        _, err := lr.db.Exec(query)
+
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: interfaces.go
+
+// Package mock_service is a generated GoMock package.
+package mock_service
+
+import (
+        reflect "reflect"
+        models "turnstile/internal/models"
+
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockEmployeeRepo is a mock of EmployeeRepo interface.
+type MockEmployeeRepo struct {
+        ctrl     *gomock.Controller
+        recorder *MockEmployeeRepoMockRecorder
+}
+
+// MockEmployeeRepoMockRecorder is the mock recorder for MockEmployeeRepo.
+type MockEmployeeRepoMockRecorder struct {
+        mock *MockEmployeeRepo
+}
+
+// NewMockEmployeeRepo creates a new mock instance.
+func NewMockEmployeeRepo(ctrl *gomock.Controller) *MockEmployeeRepo <span class="cov0" title="0">{
+        mock := &amp;MockEmployeeRepo{ctrl: ctrl}
+        mock.recorder = &amp;MockEmployeeRepoMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEmployeeRepo) EXPECT() *MockEmployeeRepoMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// GetEmployeeByCard mocks base method.
+func (m *MockEmployeeRepo) GetEmployeeByCard(card uint64) (models.Employee, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetEmployeeByCard", card)
+        ret0, _ := ret[0].(models.Employee)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetEmployeeByCard indicates an expected call of GetEmployeeByCard.
+func (mr *MockEmployeeRepoMockRecorder) GetEmployeeByCard(card interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmployeeByCard", reflect.TypeOf((*MockEmployeeRepo)(nil).GetEmployeeByCard), card)
+}</span>
+
+// Save mocks base method.
+func (m *MockEmployeeRepo) Save(data models.Employee) error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Save", data)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// Save indicates an expected call of Save.
+func (mr *MockEmployeeRepoMockRecorder) Save(data interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockEmployeeRepo)(nil).Save), data)
+}</span>
+
+// MockLogsRepo is a mock of LogsRepo interface.
+type MockLogsRepo struct {
+        ctrl     *gomock.Controller
+        recorder *MockLogsRepoMockRecorder
+}
+
+// MockLogsRepoMockRecorder is the mock recorder for MockLogsRepo.
+type MockLogsRepoMockRecorder struct {
+        mock *MockLogsRepo
+}
+
+// NewMockLogsRepo creates a new mock instance.
+func NewMockLogsRepo(ctrl *gomock.Controller) *MockLogsRepo <span class="cov0" title="0">{
+        mock := &amp;MockLogsRepo{ctrl: ctrl}
+        mock.recorder = &amp;MockLogsRepoMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLogsRepo) EXPECT() *MockLogsRepoMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// DeleteAll mocks base method.
+func (m *MockLogsRepo) DeleteAll() error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "DeleteAll")
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// DeleteAll indicates an expected call of DeleteAll.
+func (mr *MockLogsRepoMockRecorder) DeleteAll() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockLogsRepo)(nil).DeleteAll))
+}</span>
+
+// GetAll mocks base method.
+func (m *MockLogsRepo) GetAll() (models.PassageLogsForApi, error) <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetAll")
+        ret0, _ := ret[0].(models.PassageLogsForApi)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockLogsRepoMockRecorder) GetAll() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockLogsRepo)(nil).GetAll))
+}</span>
+
+// Save mocks base method.
+func (m *MockLogsRepo) Save(log models.PassageLogForApi) error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Save", log)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// Save indicates an expected call of Save.
+func (mr *MockLogsRepoMockRecorder) Save(log interface{}) *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockLogsRepo)(nil).Save), log)
+}</span>
+
+// MockDataGripper is a mock of DataGripper interface.
+type MockDataGripper struct {
+        ctrl     *gomock.Controller
+        recorder *MockDataGripperMockRecorder
+}
+
+// MockDataGripperMockRecorder is the mock recorder for MockDataGripper.
+type MockDataGripperMockRecorder struct {
+        mock *MockDataGripper
+}
+
+// NewMockDataGripper creates a new mock instance.
+func NewMockDataGripper(ctrl *gomock.Controller) *MockDataGripper <span class="cov0" title="0">{
+        mock := &amp;MockDataGripper{ctrl: ctrl}
+        mock.recorder = &amp;MockDataGripperMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDataGripper) EXPECT() *MockDataGripperMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// LoadData mocks base method.
+func (m *MockDataGripper) LoadData() error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "LoadData")
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// LoadData indicates an expected call of LoadData.
+func (mr *MockDataGripperMockRecorder) LoadData() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadData", reflect.TypeOf((*MockDataGripper)(nil).LoadData))
+}</span>
+
+// MockLogSender is a mock of LogSender interface.
+type MockLogSender struct {
+        ctrl     *gomock.Controller
+        recorder *MockLogSenderMockRecorder
+}
+
+// MockLogSenderMockRecorder is the mock recorder for MockLogSender.
+type MockLogSenderMockRecorder struct {
+        mock *MockLogSender
+}
+
+// NewMockLogSender creates a new mock instance.
+func NewMockLogSender(ctrl *gomock.Controller) *MockLogSender <span class="cov0" title="0">{
+        mock := &amp;MockLogSender{ctrl: ctrl}
+        mock.recorder = &amp;MockLogSenderMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLogSender) EXPECT() *MockLogSenderMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// SendLogs mocks base method.
+func (m *MockLogSender) SendLogs() error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "SendLogs")
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// SendLogs indicates an expected call of SendLogs.
+func (mr *MockLogSenderMockRecorder) SendLogs() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendLogs", reflect.TypeOf((*MockLogSender)(nil).SendLogs))
+}</span>
+
+// MockScheduler is a mock of Scheduler interface.
+type MockScheduler struct {
+        ctrl     *gomock.Controller
+        recorder *MockSchedulerMockRecorder
+}
+
+// MockSchedulerMockRecorder is the mock recorder for MockScheduler.
+type MockSchedulerMockRecorder struct {
+        mock *MockScheduler
+}
+
+// NewMockScheduler creates a new mock instance.
+func NewMockScheduler(ctrl *gomock.Controller) *MockScheduler <span class="cov0" title="0">{
+        mock := &amp;MockScheduler{ctrl: ctrl}
+        mock.recorder = &amp;MockSchedulerMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockScheduler) EXPECT() *MockSchedulerMockRecorder <span class="cov0" title="0">{
+        return m.recorder
+}</span>
+
+// Start mocks base method.
+func (m *MockScheduler) Start() error <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Start")
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// Start indicates an expected call of Start.
+func (mr *MockSchedulerMockRecorder) Start() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockScheduler)(nil).Start))
+}</span>
+
+// UnscheduledSendLogs mocks base method.
+func (m *MockScheduler) UnscheduledSendLogs() <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        m.ctrl.Call(m, "UnscheduledSendLogs")
+}</span>
+
+// UnscheduledSendLogs indicates an expected call of UnscheduledSendLogs.
+func (mr *MockSchedulerMockRecorder) UnscheduledSendLogs() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnscheduledSendLogs", reflect.TypeOf((*MockScheduler)(nil).UnscheduledSendLogs))
+}</span>
+
+// UnscheduledUpdate mocks base method.
+func (m *MockScheduler) UnscheduledUpdate() <span class="cov0" title="0">{
+        m.ctrl.T.Helper()
+        m.ctrl.Call(m, "UnscheduledUpdate")
+}</span>
+
+// UnscheduledUpdate indicates an expected call of UnscheduledUpdate.
+func (mr *MockSchedulerMockRecorder) UnscheduledUpdate() *gomock.Call <span class="cov0" title="0">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnscheduledUpdate", reflect.TypeOf((*MockScheduler)(nil).UnscheduledUpdate))
+}</span>
+
+// MockTurnstile is a mock of Turnstile interface.
+type MockTurnstile struct {
+        ctrl     *gomock.Controller
+        recorder *MockTurnstileMockRecorder
+}
+
+// MockTurnstileMockRecorder is the mock recorder for MockTurnstile.
+type MockTurnstileMockRecorder struct {
+        mock *MockTurnstile
+}
+
+// NewMockTurnstile creates a new mock instance.
+func NewMockTurnstile(ctrl *gomock.Controller) *MockTurnstile <span class="cov10" title="7">{
+        mock := &amp;MockTurnstile{ctrl: ctrl}
+        mock.recorder = &amp;MockTurnstileMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTurnstile) EXPECT() *MockTurnstileMockRecorder <span class="cov7" title="4">{
+        return m.recorder
+}</span>
+
+// CheckHandler mocks base method.
+func (m *MockTurnstile) CheckHandler(check models.PassageCheck) (bool, error) <span class="cov4" title="2">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CheckHandler", check)
+        ret0, _ := ret[0].(bool)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CheckHandler indicates an expected call of CheckHandler.
+func (mr *MockTurnstileMockRecorder) CheckHandler(check interface{}) *gomock.Call <span class="cov4" title="2">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckHandler", reflect.TypeOf((*MockTurnstile)(nil).CheckHandler), check)
+}</span>
+
+// LogHandler mocks base method.
+func (m *MockTurnstile) LogHandler(logs models.PassageLogsLinux) error <span class="cov4" title="2">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "LogHandler", logs)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// LogHandler indicates an expected call of LogHandler.
+func (mr *MockTurnstileMockRecorder) LogHandler(logs interface{}) *gomock.Call <span class="cov4" title="2">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogHandler", reflect.TypeOf((*MockTurnstile)(nil).LogHandler), logs)
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package scheduler
+
+import (
+        "github.com/sirupsen/logrus"
+        "net"
+        "time"
+        "turnstile/internal/service"
+        "turnstile/pkg/logging"
+)
+
+type Scheduler struct {
+        logger    logging.Logger
+        gripper   service.DataGripper
+        logSender service.LogSender
+
+        unscheduledUpdateChan chan bool
+        unscheduledLogChan    chan bool
+
+        dailyUpdatingTime time.Duration
+        logTime           time.Duration
+        retryTime         time.Duration
+}
+
+func New(logger logging.Logger, dg service.DataGripper, logSender service.LogSender, dailyUpdatingTime time.Duration, logTime time.Duration, retryTime time.Duration) *Scheduler <span class="cov0" title="0">{
+        return &amp;Scheduler{
+                logger:                logger,
+                gripper:               dg,
+                logSender:             logSender,
+                unscheduledUpdateChan: make(chan bool, 1),
+                unscheduledLogChan:    make(chan bool, 1),
+                dailyUpdatingTime:     dailyUpdatingTime,
+                logTime:               logTime,
+                retryTime:             retryTime,
+        }
+}</span>
+
+func (s *Scheduler) Start() error <span class="cov0" title="0">{
+        // First Load
+        err := s.gripper.LoadData()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">go s.updateTicker(s.unscheduledUpdateChan)
+        go s.logTicker(s.unscheduledLogChan)
+        return nil</span>
+}
+
+func (s *Scheduler) UnscheduledUpdate() <span class="cov0" title="0">{
+        if len(s.unscheduledUpdateChan) == 1 </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">s.unscheduledUpdateChan &lt;- true</span>
+}
+
+func (s *Scheduler) UnscheduledSendLogs() <span class="cov0" title="0">{
+        if len(s.unscheduledLogChan) == 1 </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">s.unscheduledLogChan &lt;- true</span>
+}
+
+func (s *Scheduler) updateTicker(unscheduledChan &lt;-chan bool) <span class="cov0" title="0">{
+        dailyLoadingTicker := time.Tick(s.dailyUpdatingTime)
+        retryTicker := time.Tick(s.retryTime)
+        retry := false
+        for </span><span class="cov0" title="0">{
+                select </span>{
+                case &lt;-dailyLoadingTicker:<span class="cov0" title="0">
+                        s.logger.Info("Trying DailyUpdate...")
+                        s.update(&amp;retry)</span>
+                case &lt;-unscheduledChan:<span class="cov0" title="0">
+                        s.logger.Info("Trying UnscheduledUpdate...")
+                        s.update(&amp;retry)</span>
+                case &lt;-retryTicker:<span class="cov0" title="0">
+                        if retry </span><span class="cov0" title="0">{
+                                s.logger.Warn("Trying RetryUpdate...")
+                                s.update(&amp;retry)
+                        }</span>
+                }
+        }
+}
+
+func (s *Scheduler) logTicker(logChan &lt;-chan bool) <span class="cov0" title="0">{
+        logTicker := time.Tick(s.logTime)
+        retryTicker := time.Tick(s.retryTime)
+        retry := false
+        for </span><span class="cov0" title="0">{
+                select </span>{
+                case &lt;-logTicker:<span class="cov0" title="0">
+                        s.logger.Info("Trying Daily LogSending...")
+                        s.sendLogs(&amp;retry)</span>
+                case &lt;-logChan:<span class="cov0" title="0">
+                        s.logger.Info("Trying Unscheduled LogSending...")
+                        s.sendLogs(&amp;retry)</span>
+                case &lt;-retryTicker:<span class="cov0" title="0">
+                        if retry </span><span class="cov0" title="0">{
+                                s.logger.Warn("Trying Retry LogSending...")
+                                s.sendLogs(&amp;retry)
+                        }</span>
+                }
+        }
+}
+
+func (s *Scheduler) update(retry *bool) <span class="cov0" title="0">{
+        if isOnline() </span><span class="cov0" title="0">{
+                *retry = false
+
+                err := s.gripper.LoadData()
+                if err != nil </span><span class="cov0" title="0">{
+                        s.logger.Error("Error in Update: ", err)
+                        *retry = true
+                        return
+                }</span>
+                <span class="cov0" title="0">s.logger.Info("Successfully update")</span>
+        } else<span class="cov0" title="0"> {
+                *retry = true
+        }</span>
+}
+
+func (s *Scheduler) sendLogs(retry *bool) <span class="cov0" title="0">{
+        if isOnline() </span><span class="cov0" title="0">{
+                *retry = false
+
+                err := s.logSender.SendLogs()
+                if err != nil </span><span class="cov0" title="0">{
+                        s.logger.Error("Error in LogSending: ", err)
+                        *retry = true
+                        return
+                }</span>
+                <span class="cov0" title="0">s.logger.Info("Logs have been sent")</span>
+        } else<span class="cov0" title="0"> {
+                *retry = true
+        }</span>
+}
+
+func isOnline() bool <span class="cov0" title="0">{
+        const (
+                protocol = "udp"
+                dns1     = "8.8.8.8:80"      // google
+                dns2     = "5.255.255.70:80" // yandex
+                dns3     = "1.1.1.1:80"      // cloudflare
+        )
+        conns := []string{dns1, dns2, dns3}
+        for i := range conns </span><span class="cov0" title="0">{
+                conn, err := net.Dial(protocol, conns[i])
+                if err != nil </span><span class="cov0" title="0">{
+                        logrus.Debugf("conn to %s failed", conns[i])
+                        continue</span>
+                }
+                <span class="cov0" title="0">_ = conn.Close()
+                return true</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package sender
+
+import (
+        "database/sql"
+        "turnstile/internal/models"
+        "turnstile/internal/service"
+        "turnstile/internal/service/infrastructure"
+)
+
+type LogSender struct {
+        client     *infrastructure.LogClient
+        logsRepo   service.LogsRepo
+        logsBuffer *models.PassageLogsForApi
+}
+
+func New(client *infrastructure.LogClient, empRepo service.LogsRepo) *LogSender <span class="cov0" title="0">{
+        return &amp;LogSender{
+                client:   client,
+                logsRepo: empRepo,
+        }
+}</span>
+
+func (ls *LogSender) SendLogs() error <span class="cov0" title="0">{
+        var logsForSending models.PassageLogsForApi
+
+        if ls.logsBuffer == nil </span><span class="cov0" title="0">{
+                // Получить все логи
+                //TODO возможно sql.NoRowsErr()
+                logs, err := ls.logsRepo.GetAll()
+                if err != nil &amp;&amp; err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        return nil
+                }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                // Положить в буфер
+                <span class="cov0" title="0">ls.logsBuffer = &amp;logs
+
+                // Удалить все логи
+                err = ls.logsRepo.DeleteAll()
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">logsForSending = *ls.logsBuffer
+
+        // Отправить все логи
+        err := ls.client.SendLogs(logsForSending)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">ls.logsBuffer = nil
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package service
+
+import (
+        "database/sql"
+        "strconv"
+        "time"
+        "turnstile/internal/models"
+        "turnstile/pkg/logging"
+)
+
+const maxLogCount = 5
+
+type TurnstileService struct {
+        logger    logging.Logger
+        scheduler Scheduler
+        empRepo   EmployeeRepo
+        logsRepo  LogsRepo
+
+        turnstileId uint64
+        logsCount   int
+}
+
+func New(logger logging.Logger, scheduler Scheduler, empRepo EmployeeRepo, logsRepo LogsRepo, turnstileId uint64) *TurnstileService <span class="cov0" title="0">{
+        return &amp;TurnstileService{
+                logger:      logger,
+                scheduler:   scheduler,
+                empRepo:     empRepo,
+                logsRepo:    logsRepo,
+                turnstileId: turnstileId,
+                logsCount:   0,
+        }
+}</span>
+
+func (t *TurnstileService) StartScheduler() error <span class="cov0" title="0">{
+        return t.scheduler.Start()
+}</span>
+
+func (t *TurnstileService) CheckHandler(check models.PassageCheck) (bool, error) <span class="cov0" title="0">{
+        card, err := ConvertInt(check.KeyHex, 16, 10)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov0" title="0">_, err = t.empRepo.GetEmployeeByCard(card)
+        if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                // ToDo проверить анонимный проход
+                // Пытаемся обновить данные
+                go t.scheduler.UnscheduledUpdate()
+                return false, nil
+        }</span> else<span class="cov0" title="0"> if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov0" title="0">return true, nil</span>
+}
+
+func (t *TurnstileService) LogHandler(logs models.PassageLogsLinux) error <span class="cov0" title="0">{
+        logsForApi, err := t.GeneratePassageLogsForApi(logs)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Save to db
+        <span class="cov0" title="0">for _, v := range logsForApi.Logs </span><span class="cov0" title="0">{
+                err = t.logsRepo.Save(v)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov0" title="0">t.logsCount = t.logsCount + len(logsForApi.Logs)
+        if t.logsCount &gt; maxLogCount </span><span class="cov0" title="0">{
+                go t.scheduler.UnscheduledSendLogs()
+                t.logsCount = 0
+        }</span>
+        <span class="cov0" title="0">t.logger.Info("Log accepted")
+        return nil</span>
+}
+
+func (t *TurnstileService) GeneratePassageCheckForApi(check models.PassageCheck) (*models.PassageCheckForApi, error) <span class="cov0" title="0">{
+        // ToDo использовать HexToInt()
+        card, err := ConvertInt(check.KeyHex, 16, 10)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">employee, err := t.empRepo.GetEmployeeByCard(card)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return &amp;models.PassageCheckForApi{
+                Card:        card,
+                EmployeeID:  employee.EmployeeID,
+                TurnstileID: t.turnstileId,
+                Direction:   uint64(check.Direction - 1),
+        }, err</span>
+}
+
+func (t *TurnstileService) GeneratePassageLogsForApi(logs models.PassageLogsLinux) (models.PassageLogsForApi, error) <span class="cov0" title="0">{
+        var passageLogs models.PassageLogsForApi
+
+        for _, value := range logs.Logs </span><span class="cov0" title="0">{
+                card, err := ConvertInt(value.Card, 16, 10)
+                if err != nil </span><span class="cov0" title="0">{
+                        return models.PassageLogsForApi{}, err
+                }</span>
+
+                <span class="cov0" title="0">employee, err := t.empRepo.GetEmployeeByCard(card)
+                if err != nil </span><span class="cov0" title="0">{
+                        return models.PassageLogsForApi{}, err
+                }</span>
+
+                <span class="cov0" title="0">passageLogs.Logs = append(passageLogs.Logs, models.PassageLogForApi{
+                        TurnstileID: t.turnstileId,
+                        EmployeeID:  employee.EmployeeID,
+                        CardID:      card,
+                        Direction:   uint64(value.Direction - 1),
+                        DateTime:    time.Unix(value.Time, 0).UTC().String(),
+                })</span>
+        }
+
+        <span class="cov0" title="0">return passageLogs, nil</span>
+}
+
+func ConvertInt(val string, base, toBase int) (uint64, error) <span class="cov0" title="0">{
+        i, err := strconv.ParseInt(val, base, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">rez, err := strconv.ParseUint(strconv.FormatInt(i, toBase), 10, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov0" title="0">return rez, nil</span>
+}
+
+func HexToInt(val string) (uint64, error) <span class="cov0" title="0">{
+        rez, err := strconv.ParseUint(val, 16, 64)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+        <span class="cov0" title="0">return rez, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package client
+
+import (
+        "net/http"
+        "time"
+)
+
+type Config struct {
+        MaxConnsPerHost int
+        Timeout         time.Duration
+}
+
+type Client struct {
+        HttpClient *http.Client
+}
+
+func NewClient(cfg Config) *Client <span class="cov0" title="0">{
+        client := &amp;http.Client{
+                Transport: &amp;http.Transport{
+                        MaxConnsPerHost: cfg.MaxConnsPerHost,
+                },
+                CheckRedirect: nil,
+                Jar:           nil,
+                Timeout:       cfg.Timeout,
+        }
+
+        return &amp;Client{
+                HttpClient: client,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package httpserver
+
+import (
+        "context"
+        "net/http"
+        "time"
+)
+
+const (
+        _defaultReadTimeout  = 15 * time.Second
+        _defaultWriteTimeout = 15 * time.Second
+        //_defaultAddr            = ":80"
+        //_defaultShutdownTimeout = 3 * time.Second
+)
+
+type Server struct {
+        server *http.Server
+        notify chan error
+        //shutdownTimeout time.Duration
+}
+
+func New(handler http.Handler, port string) *Server <span class="cov0" title="0">{
+        httpServer := &amp;http.Server{
+                Handler:      handler,
+                Addr:         ":" + port,
+                ReadTimeout:  _defaultReadTimeout,
+                WriteTimeout: _defaultWriteTimeout,
+        }
+
+        s := &amp;Server{
+                server: httpServer,
+                notify: make(chan error, 1),
+                //shutdownTimeout: _defaultShutdownTimeout,
+        }
+
+        s.start()
+
+        return s
+}</span>
+
+func (s *Server) start() <span class="cov0" title="0">{
+        go func() </span><span class="cov0" title="0">{
+                s.notify &lt;- s.server.ListenAndServe()
+                close(s.notify)
+        }</span>()
+}
+
+func (s *Server) Notify() &lt;-chan error <span class="cov0" title="0">{
+        return s.notify
+}</span>
+
+func (s *Server) Shutdown() error <span class="cov0" title="0">{
+        //ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
+        //defer cancel()
+
+        //return s.server.Shutdown(ctx)
+        return s.server.Shutdown(context.Background())
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package logging
+
+import (
+        "fmt"
+        "io"
+        "log"
+        "os"
+        "path"
+        "runtime"
+        "sync"
+        "time"
+
+        "github.com/sirupsen/logrus"
+)
+
+type writerHook struct {
+        Writer    []io.Writer
+        LogLevels []logrus.Level
+}
+
+func (hook *writerHook) Fire(entry *logrus.Entry) error <span class="cov0" title="0">{
+        line, err := entry.String()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">for _, w := range hook.Writer </span><span class="cov0" title="0">{
+                _, err = w.Write([]byte(line))
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return err</span>
+}
+
+func (hook *writerHook) Levels() []logrus.Level <span class="cov0" title="0">{
+        return hook.LogLevels
+}</span>
+
+type Logger struct {
+        *logrus.Entry
+}
+
+func (s *Logger) ExtraFields(fields map[string]interface{}) *Logger <span class="cov0" title="0">{
+        return &amp;Logger{s.WithFields(fields)}
+}</span>
+
+var instance Logger
+var once sync.Once
+
+func GetLogger(level string) Logger <span class="cov10" title="12">{
+        once.Do(func() </span><span class="cov3" title="2">{
+                logrusLevel, err := logrus.ParseLevel(level)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Fatalln(err)
+                }</span>
+
+                <span class="cov3" title="2">l := logrus.New()
+                l.SetReportCaller(true)
+                l.Formatter = &amp;logrus.TextFormatter{
+                        CallerPrettyfier: func(f *runtime.Frame) (string, string) </span><span class="cov6" title="5">{
+                                filename := path.Base(f.File)
+                                return fmt.Sprintf("%s:%d", filename, f.Line), fmt.Sprintf("%s()", f.Function)
+                        }</span>,
+                        DisableColors:   false,
+                        TimestampFormat: time.Stamp,
+                        FullTimestamp:   true,
+                }
+
+                <span class="cov3" title="2">if logrusLevel != logrus.DebugLevel </span><span class="cov0" title="0">{
+                        err = os.MkdirAll("logs", 0700)
+                        if err != nil </span><span class="cov0" title="0">{
+                                panic(err)</span>
+                        }
+
+                        <span class="cov0" title="0">allFile, err := os.OpenFile("logs/all.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0700)
+                        if err != nil </span><span class="cov0" title="0">{
+                                fmt.Printf("err: %s", err)
+                        }</span>
+
+                        <span class="cov0" title="0">l.AddHook(&amp;writerHook{
+                                Writer:    []io.Writer{allFile},
+                                LogLevels: logrus.AllLevels,
+                        })</span>
+                }
+
+                <span class="cov3" title="2">l.SetOutput(os.Stdout)
+                l.SetLevel(logrusLevel)
+
+                instance = Logger{logrus.NewEntry(l)}</span>
+        })
+
+        <span class="cov10" title="12">return instance</span>
+}
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package sqlite
+
+import (
+        "github.com/jmoiron/sqlx"
+        _ "github.com/mattn/go-sqlite3"
+)
+
+const (
+        schema = `
+        CREATE TABLE IF NOT EXISTS employee (
+                card_number UNSIGNED BIG INT NOT NULL,
+                employee_id UNSIGNED BIG INT NOT NULL,
+                rv UNSIGNED BIG INT NOT NULL, 
+                isdeleted BOOLEAN NOT NULL CHECK (isdeleted IN (0, 1))
+          );
+        CREATE TABLE IF NOT EXISTS log (
+                turnstile_id UNSIGNED BIG INT NOT NULL,
+                employee_id UNSIGNED BIG INT NOT NULL,
+                card UNSIGNED BIG INT NOT NULL, 
+                direction INTEGER NOT NULL,
+            dt VARCHAR(50) NOT NULL
+          );
+`
+)
+
+type Config struct {
+        FileName string
+}
+
+func New(cfg Config) (*sqlx.DB, error) <span class="cov0" title="0">{
+        db, err := sqlx.Open("sqlite3", cfg.FileName)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">err = db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">db.MustExec(schema)
+
+        return db, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

@@ -1,0 +1,22 @@
+port: "8000"
+rvFileName: "./configs/rv.json"
+turnstileId: 0
+
+logger:
+  trace_level: "trace"
+
+db:
+  filename: "heavens.db"
+  employeeTableName: "employee"
+  logTableName: "log"
+
+client:
+  dataClientUrl: "http://localhost:8090/data/get_by_rv"
+  logClientUrl: "http://localhost:8091/logs"
+  max_conns_per_host: 10
+  timeout: "3s"
+
+scheduler:
+  dailyTime: "60s"
+  logTime: "60s"
+  retryTime: "5s"
